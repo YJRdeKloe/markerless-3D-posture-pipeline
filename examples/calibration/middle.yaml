@@ -1,0 +1,31 @@
+%YAML:1.0
+---
+intrinsicMatrix: !!opencv-matrix
+  rows: 3
+  cols: 3
+  dt: d
+  # Replace fx, fy, cx, cy with values from MATLAB (left camera intrinsics)
+  data: [ fx_left, 0, cx_left,
+          0, fy_left, cy_left,
+          0,      0,        1 ]
+
+distortionCoefficients: !!opencv-matrix
+  rows: 1
+  cols: 5
+  dt: d
+  data: [ k1_left, k2_left, p1_left, p2_left, k3_left ]
+
+# The center/anchor camera has identity extrinsics
+R: !!opencv-matrix
+  rows: 3
+  cols: 3
+  dt: d
+  data: [ 1, 0, 0,
+          0, 1, 0,
+          0, 0, 1 ]
+
+T: !!opencv-matrix
+  rows: 3
+  cols: 1
+  dt: d
+  data: [ 0, 0, 0 ]
