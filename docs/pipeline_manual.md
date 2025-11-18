@@ -371,7 +371,7 @@ Before running this pipeline, install or prepare:
 
 1. Record synchronized calibration videos.
 2. Calibrate in MATLAB → export R, T, intrinsics.
-3. Create camera YAML files (`left.yaml`, `center.yaml`, `right.yaml`).
+3. Create camera YAML files (`left.yaml`, `middle.yaml`, `right.yaml`).
 4. Record synchronized experimental videos.
 5. Create project YAML (`Example_Child_1.yaml`).
 6. Run K-means sampling script.
@@ -400,7 +400,7 @@ You can find them in the repository under:
 examples/
     calibration/
         left.yaml
-        center.yaml
+        middle.yaml
         right.yaml
     project/
         Try_out.yaml
@@ -408,7 +408,7 @@ examples/
 
 To link to these files directly from this manual, use:
 
-* **[Example center.yaml](../examples/calibration/center.yaml)**
+* **[Example middle.yaml](../examples/calibration/middle.yaml)**
 * **[Example left.yaml](../examples/calibration/left.yaml)**
 * **[Example right.yaml](../examples/calibration/right.yaml)**
 * **[Example Try_out.yaml](../examples/project/Try_out.yaml)**
