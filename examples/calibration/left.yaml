@@ -1,0 +1,33 @@
+%YAML:1.0
+---
+intrinsicMatrix: !!opencv-matrix
+  rows: 3
+  cols: 3
+  dt: d
+  # Replace fx, fy, cx, cy with values from MATLAB (left camera intrinsics)
+  data: [ fx_left, 0, cx_left,
+          0, fy_left, cy_left,
+          0,      0,        1 ]
+
+distortionCoefficients: !!opencv-matrix
+  rows: 1
+  cols: 5
+  dt: d
+  data: [ k1_left, k2_left, p1_left, p2_left, k3_left ]
+
+# Extrinsics relative to center camera
+R: !!opencv-matrix
+  rows: 3
+  cols: 3
+  dt: d
+  # Replace with RotationOfCamera2 (Camera 2 = Left) when center is Camera 1
+  data: [ R11_left, R12_left, R13_left,
+          R21_left, R22_left, R23_left,
+          R31_left, R32_left, R33_left ]
+
+T: !!opencv-matrix
+  rows: 3
+  cols: 1
+  dt: d
+  # Replace with TranslationOfCamera2 (Camera 2 = Left)
+  data: [ T1_left, T2_left, T3_left ]

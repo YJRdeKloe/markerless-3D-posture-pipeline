@@ -1,0 +1,33 @@
+Name: Example_Child_1
+Date of creation: 2025-06-06
+Recordings:
+  annotation_dataset: ~
+Cameras:
+  - middle
+  - left
+  - right
+Entities:
+  - toddler
+Keypoints:
+  - Ear_L
+  - Eye_L
+  - Nose
+  - Eye_R
+  - Ear_R
+  - Top_Sternum
+  - Shoulder_R
+  - Elbow_R
+  - Wrist_R
+  - Shoulder_L
+  - Elbow_L
+  - Wrist_L
+  - Hip_R
+  - Hip_L
+  - Knee_R
+  - Knee_L
+  - Ankle_R
+  - Heel_R
+  - Big_Toe_R
+  - Ankle_L
+  - Heel_L
+  - Big_Toe_L
