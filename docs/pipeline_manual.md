@@ -1,100 +1,86 @@
 # Markerless 3D Posture Estimation Pipeline
 
-This document provides a full workflow for preparing, calibrating, sampling, annotating, and exporting multi-camera datasets for markerless 3D posture estimation using HybridNet + JARVIS tooling.
+This document provides a complete workflow for preparing, calibrating, sampling, annotating, and exporting multi-camera datasets for markerless 3D posture estimation using HybridNet and JARVIS tooling. It includes:
 
-It includes:
-
-* Folder structure requirements
-* MATLAB stereo calibration export
+* Required folder structure
+* MATLAB stereo calibration
 * YAML parameter formatting for each camera
-* Multi-entity project YAML structure
-* K-means sampling script usage
-* Annotation Tool workflow (JARVIS)
-* CSV structure and annotation guidelines
+* Multi-entity project configuration
+* K-means sampling workflow
+* Annotation Tool usage (JARVIS)
+* CSV output structure
+* Troubleshooting calibration, synchronization, and YAML issues
+
+The workflow is written for **developmental experimental psychologists and researchers**, especially those working with **infants, toddlers, and their caregivers**, and assumes minimal prior technical background.
 
 ---
 
 ## 1. Overview of the Pipeline
 
-This workflow is developed for **markerless 3D posture estimation in developmental research**, specifically tested with **toddlers**, but fully applicable to **infants** and, when needed, their **parents or caregivers**. It is written for **developmental experimental psychologists and researchers** who may not have extensive technical or engineering backgrounds. The aim is to provide a clear, step-by-step guide for generating research‑grade 3D posture data from synchronized multi‑camera recordings.
+This workflow supports **markerless 3D posture estimation** using synchronized multi-camera recordings. It was developed for toddlers and infants, but also supports multi-entity annotation (e.g., child + parent).
 
-Because this documentation is aimed at researchers in developmental science, explanations are intentionally thorough, with explicit instructions for calibration, folder structures, annotation, and data handling.
+Although two cameras are supported, **three cameras are recommended** (left, center, right) for robust triangulation.
 
-Additionally, note the following practical distinction:
+### Complete workflow
 
-* **Stationary laboratory setup:** Cameras remain fixed in place → **calibration only needs to be performed once** (unless cameras are moved).
-* **Mobile or semi-mobile setup:** Cameras are transported, mounted temporarily, or re-positioned → **calibration must be redone for every new setup**.
+1. Record synchronized calibration videos using an asymmetric checkerboard.
+2. Calibrate cameras in MATLAB.
+3. Export intrinsic parameters, distortion coefficients, and extrinsics (R and T).
+4. Create camera YAML files (`left.yaml`, `center.yaml`, `right.yaml`).
+5. Record synchronized experimental videos.
+6. Create a project YAML file (e.g., `Example_Child_1.yaml`).
+7. Run the K-means sampling script to select representative frames.
+8. Annotate frames in the JARVIS tool.
+9. Export a training set for 2D pose estimation and 3D reconstruction.
 
-This ensures accurate triangulation and prevents geometric errors in 3D reconstruction.
+### Stationary vs. mobile setups
 
-This workflow is developed for **markerless 3D posture estimation in developmental research**, specifically tested with **toddlers**, but fully applicable to **infants** and, when needed, their **parents or caregivers**. It supports multi-entity annotation (e.g., child + parent) and multi-camera setups (preferably three cameras) to enable robust 3D reconstruction of naturalistic movement.
-This pipeline processes synchronized multi-camera recordings (typically **three cameras**, but it also works with two).
-This pipeline processes synchronized multi-camera recordings (**three cameras are recommended: left, center, right**), e.g., *left*, *center*, *right*, but also compatible with two-camera setups) into a training-ready annotation dataset for 2D pose estimation.
-
-**Complete workflow:**
-
-1. **Record synchronized calibration videos** using an **asymmetric checkerboard**.
-2. **Calibrate cameras in MATLAB** (stereo calibration).
-3. **Export intrinsics, distortion coefficients, rotation (R) and translation (T)** for each camera.
-4. **Create YAML files for each camera** (`left.yaml`, `right.yaml`).
-5. **Record synchronized test videos** of the child + parent.
-6. **Create an info YAML file** (e.g., `Try_out.yaml`) specifying:
-
-   * entities (child, parent)
-   * keypoints per entity
-   * camera list
-   * calibration location
-7. **Run the K-means sampling script** to generate frame subsets.
-8. **Open dataset in JARVIS Annotation Tool**.
-9. **Annotate all selected frames**.
-10. **Export training set** through JARVIS.
+* **Stationary setup (lab):** Calibration is needed **only once**, unless a camera moves.
+* **Mobile or semi-mobile setup:** Calibration must be repeated **every time** the setup is used.
 
 ---
 
 ## 2. Folder Structure per Test Subject
 
-Each subject folder must contain (example shown for **three cameras**, with the center camera as anchor):
+For a three-camera setup:
 
 ```
 SubjectFolder/
     CalibrationParameters/
-    left.yaml
-    center.yaml
-    right.yaml
-Videos/
-    left.mp4
-    center.mp4
-    right.mp4
-Try_out.yaml)
-    annotation_dataset/   ← created by sampling script
+        left.yaml
+        center.yaml
+        right.yaml
+    Videos/
+        left.mp4
+        center.mp4
+        right.mp4
+    Example_Child_1.yaml
+    annotation_dataset/        ← created automatically by sampling script
 ```
 
-### Contents:
+### Notes
 
-* **CalibrationParameters/** → Camera intrinsics + extrinsics.
-* **Videos/** → Synchronized recordings for each camera, filenames matching YAML names.
-* **Try_out.yaml** → Multi-entity, multi-camera project file.
-* **annotation_dataset/** → created after K-means sampling, contains:
-
-  * one folder per camera (`left/`, `right/`)
-  * extracted frame images
-  * an `annotations.csv` in each folder
+* `CalibrationParameters/` contains YAML files describing intrinsic and extrinsic calibration.
+* `Videos/` contains synchronized MP4 recordings for each camera.
+* `Example_Child_1.yaml` defines entities, keypoints, camera list, and calibration directory.
+* `annotation_dataset/` is generated after running the sampling script.
 
 ---
 
 ## 3. MATLAB Stereo Calibration
 
-Use MATLAB’s **Camera Calibrator** → **Stereo Camera Calibrator**.
+Use MATLAB’s **Camera Calibrator** or **Stereo Camera Calibrator** app.
 
-Important outputs you must copy manually:
+For each stereo pair, export:
 
-* **Intrinsic matrix**
-* **Radial/tangential distortion**
-* **Rotation and translation of Camera 2 relative to Camera 1**
+* Intrinsic matrix
+* Distortion coefficients
+* Rotation matrix (`RotationOfCamera2`)
+* Translation vector (`TranslationOfCamera2`)
 
-### Example MATLAB commands
+Example MATLAB commands:
 
-```
+```matlab
 load('calibrationSession.mat');
 calibrationSession.CameraParameters.CameraParameters1.Intrinsics
 calibrationSession.CameraParameters.CameraParameters2.Intrinsics
@@ -102,43 +88,40 @@ calibrationSession.CameraParameters.RotationOfCamera2
 calibrationSession.CameraParameters.TranslationOfCamera2
 ```
 
-### Choosing the main camera
+### Three-camera calibration
 
-* If two cameras are used (less preferred): choose one as the **main/anchor** (typically the *left* camera).
-* R and T in the *right* YAML describe **Camera 2 relative to Camera 1**.
-* For **three cameras (preferred configuration)**:
-* Use **three synchronized videos**: `left`, `center`, `right`.
-* Choose the **center camera** as the *main/anchor* camera.
-* Perform **two stereo calibrations** in MATLAB:
+Use the **center camera as the anchor**.
 
-  * center → left
-  * center → right
-* This results in two sets of extrinsics:
+Perform two stereo calibrations:
 
-  * `R_left`, `T_left` relative to the center camera
-  * `R_right`, `T_right` relative to the center camera
-* The center camera receives:
+1. Center → Left
+2. Center → Right
 
-  * `R = identity`
-  * `T = [0, 0, 0]`:
-  * middle → left
-  * middle → right
+This produces extrinsics:
+
+* `R_left`, `T_left` relative to center
+* `R_right`, `T_right` relative to center
+
+For the center camera:
+
+* `R` = identity matrix
+* `T` = `[0, 0, 0]`
 
 ---
 
 ## 4. Camera Calibration YAML Files
 
-Each camera has its own YAML file in OpenCV format.
+Each camera requires a YAML file in OpenCV format.
 
-For a **three-camera setup** with the **center camera as anchor**, you will typically have:
+A three-camera setup includes:
 
-* `left.yaml`   → left camera, extrinsics relative to center
-* `center.yaml` → center/anchor camera, identity R and zero T
-* `right.yaml`  → right camera, extrinsics relative to center
+* `center.yaml`
+* `left.yaml`
+* `right.yaml`
 
-### Example: `center.yaml` (anchor camera)
+The **center camera** defines the coordinate system.
 
-This camera defines the world coordinate system. Its rotation is the identity matrix and translation is zero.
+### Example: center.yaml (anchor camera)
 
 ```yaml
 %YAML:1.0
@@ -147,21 +130,24 @@ intrinsicMatrix: !!opencv-matrix
    rows: 3
    cols: 3
    dt: d
-   data: [ 2.3445e+03, 0., 0., 
-           0., 2.3278e+03, 0., 
+   data: [ 2.3445e+03, 0., 0.,
+           0., 2.3278e+03, 0.,
            1.0002e+03, 0.7456e+03, 1. ]
+
 distortionCoefficients: !!opencv-matrix
    rows: 1
    cols: 5
    dt: d
    data: [ 0.8183, -1.5926, 0., 0., 0. ]
+
 R: !!opencv-matrix
    rows: 3
    cols: 3
    dt: d
-   data: [ 1., 0., 0., 
-           0., 1., 0., 
+   data: [ 1., 0., 0.,
+           0., 1., 0.,
            0., 0., 1. ]
+
 T: !!opencv-matrix
    rows: 3
    cols: 1
@@ -169,27 +155,38 @@ T: !!opencv-matrix
    data: [ 0., 0., 0. ]
 ```
 
-### Example: `left.yaml` and `right.yaml`
+---
 
-For the non-anchor cameras, the intrinsics and distortion coefficients come from their respective `cameraIntrinsics` objects in MATLAB. The rotation `R` and translation `T` are taken from the stereo calibration where the **center camera** is Camera 1 and the other camera is Camera 2. In those YAMLs:
+## Important Note About Example YAML Files
 
-* `R` = `RotationOfCamera2` (3×3 matrix)
-* `T` = `TranslationOfCamera2` (3×1 vector)
+The YAML files included in the `examples/` folder are **templates**. They contain placeholders (e.g., `fx`, `k1`, `R11`, `T1`) instead of real calibration values.
+
+The JARVIS Annotation Tool **will not load these templates**.
+
+To use them:
+
+1. Copy the template YAML.
+2. Replace all intrinsic parameters with values from MATLAB.
+3. Replace all distortion coefficients.
+4. Replace all extrinsic parameters (`R` and `T`) with MATLAB outputs.
+5. Save and load the edited version.
+
+This prevents accidental corruption of real calibration files and guides new users clearly.
 
 ---
 
-## 5. Project Information YAML (`Try_out.yaml`)
+## 5. Project Information YAML (`Example_Child_1.yaml`)
 
-This YAML defines the annotation project.
-
-It includes:
+This YAML file defines:
 
 * Entities (child, parent)
-* Keypoints per entity
-* Camera names
+* Keypoints for each entity
+* Cameras used
 * Calibration directory
 * Video directory
-* Output frame sampling parameters
+* Output dataset settings
+
+An example template is provided in `examples/project/Example_Child_1.yaml`.
 
 ---
 
@@ -197,28 +194,32 @@ It includes:
 
 Run:
 
-```
+```bash
 python k_means_sampling_updated_multiple.py
 ```
 
-### Prompts and meaning
+### Inputs requested by the script
 
-* **Base folder** → subject folder containing Videos and CalibrationParameters.
-* **num_frames** → total frames to sample **per camera**.
-* **n_clusters** → must divide `num_frames` exactly (script ensures equal cluster selection).
-* **Main camera index** → must match your MATLAB anchor camera (0 = left, 1 = right).
+* **Base directory**: path to subject folder
+* **Number of frames** per camera
+* **Number of clusters** (must divide evenly into the number of frames)
+* **Main camera index** (must match your anchor camera; usually the index of `center`)
 
 ### Output
-
-Creates:
 
 ```
 annotation_dataset/
     left/
-        Frame_XXX.jpg
+        Frame_000.jpg
+        ...
+        annotations.csv
+    center/
+        Frame_000.jpg
+        ...
         annotations.csv
     right/
-        Frame_XXX.jpg
+        Frame_000.jpg
+        ...
         annotations.csv
 ```
 
@@ -226,9 +227,7 @@ annotation_dataset/
 
 ## 7. Annotation CSV Format
 
-Each `annotations.csv` follows **DeepLabCut multi-animal style**, but with state instead of likelihood.
-
-### Header rows:
+### Header rows
 
 ```
 Scorer
@@ -239,82 +238,56 @@ coords
 
 ### Column structure
 
-For each entity:
+For each entity and keypoint:
 
 ```
-keypoint_1_x, keypoint_1_y, keypoint_1_state,
-keypoint_2_x, keypoint_2_y, keypoint_2_state,
-...
+<entity>_<keypoint>_x
+<entity>_<keypoint>_y
+<entity>_<keypoint>_state
 ```
 
 ### State values
 
-* **1** = visible / labeled
-* **0** = occluded / not visible
+* `1` → keypoint visible
+* `0` → keypoint occluded
 
 ---
 
 ## 8. Loading the Dataset in JARVIS Annotation Tool
 
-Steps (with screenshots in repo):
-
-### 1. Open Annotation Tool
-
-Choose **Annotate Dataset**.
-
-### 2. Select Dataset
-
-Load the project YAML (`Try_out.yaml`).
-
-### 3. Select Segment
-
-Choose:
-
-```
-annotation_dataset
-```
-
-### 4. Verify Camera Order
-
-Matches your YAML:
-
-```
-left
-right
-```
-
-### 5. Load Dataset
-
-Workspace opens.
+1. Open the Annotation Tool.
+2. Select **Annotate Dataset**.
+3. Select `Example_Child_1.yaml`.
+4. Choose segment: `annotation_dataset`.
+5. Confirm camera order matches YAML.
+6. Load dataset.
 
 ---
 
 ## 9. Annotating Frames
 
-Inside the annotation interface:
+The interface allows:
 
-* Switch between **child** and **parent** entities
-* Select keypoints from the right panel
-* Mark their location in the image
-* Use reprojection view for consistency
+* Switching between entities
+* Selecting keypoints
+* Clicking to mark positions
+* Using **Reprojection Mode** to check calibration consistency
 
-Navigation buttons:
+Navigation tools:
 
-* **Next >>**, **Previous**, **Crop**, **Pan**, **Home**
+* **Next**, **Previous**
+* **Crop**, **Pan**, **Home**
 
-Annotate **both cameras** for each selected frame set.
+Annotate all frames in all cameras.
 
 ---
 
-## 10. Export Training Set
+## 10. Exporting the Training Set
 
 After annotating:
-Use **Export Trainingset** in the tool.
-This produces:
 
-* Training-ready 2D keypoint labels
-* Files compatible with HybridNet/JARVIS training
-* Correct folder structure for triangulation
+* Click **Export Trainingset**.
+* The tool exports hybrid-training-compatible labels and metadata.
 
 ---
 
@@ -447,6 +420,8 @@ These example files show the exact formatting required by the JARVIS Annotation 
 * Required fields for calibration and experiment configuration
 
 Ensure you update the paths, camera names, keypoints, and entities to match your own project.
+
+
 
 ---
 
