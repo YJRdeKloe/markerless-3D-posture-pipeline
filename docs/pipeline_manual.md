@@ -1,5 +1,9 @@
 # Markerless 3D Posture Estimation Pipeline
 
+Markerless 3D Posture Estimation of
+Toddlers from Multi-View Video Recordings
+Evaluating Accuracy, Precision, and Generalizability
+
 This document provides a complete workflow for preparing, calibrating, sampling, annotating, and exporting multi-camera datasets for markerless 3D posture estimation using HybridNet and JARVIS tooling. It includes:
 
 * Required folder structure
@@ -17,9 +21,9 @@ The workflow is written for **developmental experimental psychologists and resea
 
 ## 1. Overview of the Pipeline
 
-This workflow supports **markerless 3D posture estimation** using synchronized multi-camera recordings. It was developed for toddlers and infants, but also supports multi-entity annotation (e.g., child + parent).
+This workflow was developed and validated in the context of the study:
 
-Although two cameras are supported, **three cameras are recommended** (left, center, right) for robust triangulation.
+De Kloe, Y. J. R., Hunnius, S., & Stapel, J. S. (2025). *Markerless 3D Posture Estimation of Toddlers from Multi-View Video Recordings: Evaluating Accuracy, Precision, and Generalizability* (manuscript under review).
 
 ### Complete workflow
 
@@ -192,11 +196,14 @@ An example template is provided in `examples/project/Example_Child_1.yaml`.
 
 ## 6. K-means Sampling Script
 
-Run:
+The K-means frame selection used in this pipeline is implemented in:
+
+**[`scripts/kmeans_frame_selection.py`](../scripts/kmeans_frame_selection.py)**
+
+Run the script with:
 
 ```bash
-python k_means_sampling_updated_multiple.py
-```
+python kmeans_frame_selection.py
 
 ### Inputs requested by the script
 
@@ -286,19 +293,31 @@ Annotate all frames in all cameras.
 
 After annotating:
 
-* Click **Export Trainingset**.
-* The tool exports hybrid-training-compatible labels and metadata.
+Follow the steps provided in the [JARVIS Annotation Tool documentation](https://jarvis-mocap.github.io/jarvis-docs/manual/7_training_hybridnet/).
 
 ---
 
 ## Troubleshooting Guide
 
-### 1. Synchronization Errors
+### 1. Calibration Errors (MATLAB)
 
-Accurate 3D reconstruction is only possible when all cameras are **perfectly synchronized**. Even a **single-frame offset** between cameras will cause:
+Poor calibration leads to inaccurate 3D posture estimation. Common issues:
 
-* Large jumps in triangulated keypoints
-* Extremely high reprojection error in the JARVIS Annotation Tool
+* Checkerboard origin flips between frames
+* Blurry images or partial board visibility
+* Insufficient spread of board poses (e.g., only center of room)
+
+**Solutions:**
+
+* Remove problematic image pairs using MATLAB’s GUI.
+* Ensure checkerboard is visible to all cameras simultaneously.
+* Capture poses with wide variation: tilt, rotate, move board through space.
+
+### 2. Synchronization Errors
+
+Accurate 3D reconstruction is only possible when all cameras are **perfectly synchronized**. Even a **single-frame offset** between cameras can cause:
+
+* High reprojection error in the JARVIS Annotation Tool
 * Inconsistent or unstable 3D trajectories
 
 **How to detect this:**
@@ -315,12 +334,11 @@ Accurate 3D reconstruction is only possible when all cameras are **perfectly syn
 
 ---
 
-### 2. YAML Formatting Errors
+### 3. YAML Formatting Errors
 
 The JARVIS tool is extremely strict about YAML syntax. A **single misplaced comma**, missing bracket, wrong indentation, or malformed OpenCV matrix will cause JARVIS to:
 
 * Crash immediately when loading
-* Load cameras incorrectly
 * Fail to display frames or calibration
 * Reject the project without a visible error message
 
@@ -333,23 +351,7 @@ The JARVIS tool is extremely strict about YAML syntax. A **single misplaced comm
 * Quotes are not required for numbers.
 * No trailing commas at the end of lists.
 
-If something fails, validate your YAML using an online YAML validator (e.g. yamllint) and compare to the examples provided in this manual.
-
----
-
-### 3. Calibration Errors (MATLAB)
-
-Poor calibration leads to inaccurate 3D posture estimation. Common issues:
-
-* Checkerboard origin flips between frames
-* Blurry images or partial board visibility
-* Insufficient spread of board poses (e.g., only center of room)
-
-**Solutions:**
-
-* Remove problematic image pairs using MATLAB’s GUI.
-* Ensure checkerboard is visible to all cameras simultaneously.
-* Capture poses with wide variation: tilt, rotate, move board through space.
+If something fails, validate your YAML using an online YAML validator and compare to the examples provided in this manual.
 
 ---
 
@@ -384,9 +386,28 @@ Before running this pipeline, install or prepare:
 
 If you publish research using this pipeline, please cite:
 
-* The **JARVIS Toolkit** (from the JARVIS documentation)
-* Any relevant HybridNet or markerless 3D estimation papers
-* This repository (once published)
+* **De Kloe, Y.J.R.** *Markerless 3D Posture Estimation of Toddlers from Multi-View Video Recordings: Evaluating Accuracy, Precision, and Generalizability* (under review).  
+  *This paper introduces, validates, and benchmarks the workflow presented in this repository.*
+
+### BibTeX
+
+```bibtex
+@unpublished{deKloe2025markerless3D,
+  author       = {De Kloe, Yentl J. R. and Hunnius, Sabine and Stapel, Janny S.},
+  title        = {Markerless 3D Posture Estimation of Toddlers from Multi-View Video Recordings: Evaluating Accuracy, Precision, and Generalizability},
+  note         = {Manuscript under review},
+  year         = {2025}
+}
+```
+
+* **JARVIS Annotation Tool**, available here:  
+  <https://jarvis-mocap.github.io/jarvis-docs/manual/6_creating_and_labeling_datasts/>
+
+
+* Any relevant HybridNet or markerless 3D estimation papers used in your project
+
+* This repository 
+
 
 ---
 
