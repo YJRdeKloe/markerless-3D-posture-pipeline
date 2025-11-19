@@ -375,11 +375,7 @@ If you publish research using this pipeline, please cite:
 * **JARVIS Annotation Tool**, available here:  
   <https://jarvis-mocap.github.io/jarvis-docs/manual/6_creating_and_labeling_datasts/>
 
-
 * Any relevant HybridNet or markerless 3D estimation papers used in your project
-
-* This repository 
-
 
 ---
 
