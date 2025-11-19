@@ -30,7 +30,7 @@ De Kloe, Y. J. R., Hunnius, S., & Stapel, J. S. (2025). *Markerless 3D Posture E
 1. Record synchronized calibration videos using an asymmetric checkerboard.
 2. Calibrate cameras in MATLAB.
 3. Export intrinsic parameters, distortion coefficients, and extrinsics (R and T).
-4. Create camera YAML files (`left.yaml`, `center.yaml`, `right.yaml`).
+4. Create camera YAML files (`left.yaml`, `middle.yaml`, `right.yaml`).
 5. Record synchronized experimental videos.
 6. Create a project YAML file (e.g., `Example_Child_1.yaml`).
 7. Run the K-means sampling script to select representative frames.
@@ -52,11 +52,11 @@ For a three-camera setup:
 SubjectFolder/
     CalibrationParameters/
         left.yaml
-        center.yaml
+        middle.yaml
         right.yaml
     Videos/
         left.mp4
-        center.mp4
+        middle.mp4
         right.mp4
     Example_Child_1.yaml
     annotation_dataset/        ← created automatically by sampling script
@@ -94,19 +94,19 @@ calibrationSession.CameraParameters.TranslationOfCamera2
 
 ### Three-camera calibration
 
-Use the **center camera as the anchor**.
+Use the **middle camera as the anchor**.
 
 Perform two stereo calibrations:
 
-1. Center → Left
-2. Center → Right
+1. Middle → Left
+2. Middle → Right
 
 This produces extrinsics:
 
-* `R_left`, `T_left` relative to center
-* `R_right`, `T_right` relative to center
+* `R_left`, `T_left` relative to middle
+* `R_right`, `T_right` relative to middle
 
-For the center camera:
+For the middle camera:
 
 * `R` = identity matrix
 * `T` = `[0, 0, 0]`
@@ -119,13 +119,13 @@ Each camera requires a YAML file in OpenCV format.
 
 A three-camera setup includes:
 
-* `center.yaml`
+* `middle.yaml`
 * `left.yaml`
 * `right.yaml`
 
-The **center camera** defines the coordinate system.
+The **middle camera** defines the coordinate system.
 
-### Example: center.yaml (anchor camera)
+### Example: middle.yaml (anchor camera)
 
 ```yaml
 %YAML:1.0
@@ -200,35 +200,7 @@ The K-means frame selection used in this pipeline is implemented in:
 
 **[`scripts/kmeans_frame_selection.py`](../scripts/kmeans_frame_selection.py)**
 
-Run the script with:
-
-```bash
-python kmeans_frame_selection.py
-
-### Inputs requested by the script
-
-* **Base directory**: path to subject folder
-* **Number of frames** per camera
-* **Number of clusters** (must divide evenly into the number of frames)
-* **Main camera index** (must match your anchor camera; usually the index of `center`)
-
-### Output
-
-```
-annotation_dataset/
-    left/
-        Frame_000.jpg
-        ...
-        annotations.csv
-    center/
-        Frame_000.jpg
-        ...
-        annotations.csv
-    right/
-        Frame_000.jpg
-        ...
-        annotations.csv
-```
+Run the script with your favorite python GUI or from the terminal or command window. It will ask you for the base directory per subject (copy paste the entire path), number of frames per camera, number of clusters (must be a division of your number of frames), and the main camera index (must match your anchor camera, usually the index of 'middle')
 
 ---
 
